@@ -8,7 +8,7 @@
             class="text-weight-bold row items-center justify-center q-pt-lg q-gutter-sm"
           >
             <q-icon name="list_alt" style="font-size: 50px" />
-            <span class="q-ml-sm"> QUASAR TODO-LIST</span>
+            <span class="q-ml-sm"> QUASAR TODO-LISTTT</span>
           </h4>
         </q-toolbar-title>
       </q-toolbar>
