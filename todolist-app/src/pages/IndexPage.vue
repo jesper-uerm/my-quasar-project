@@ -73,7 +73,6 @@
 
 <script>
 import axios from "axios";
-// import { date } from "quasar";
 import { mapState, mapActions } from "pinia";
 import TodoItem from "components/TodoItem.vue";
 import { useTaskStore } from "src/composable/useTaskStore.js";
