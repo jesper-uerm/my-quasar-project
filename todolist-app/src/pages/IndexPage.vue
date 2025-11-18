@@ -83,6 +83,7 @@ export default {
   components: {
     TodoItem,
   },
+
   data() {
     return {
       newTodo: "",
@@ -93,9 +94,11 @@ export default {
       editingTodoDueDate: "",
     };
   },
+
   computed: {
     ...mapState(useTaskStore, ["taskCount", "completedTaskCount"]),
   },
+
   methods: {
     ...mapActions(useTaskStore, [
       "fetchTaskCount",
@@ -104,6 +107,7 @@ export default {
       "incrementCompletedCount",
       "decrementCompletedCount",
     ]),
+
     async fetchTodos() {
       try {
         const response = await axios.get(API_URL);
@@ -112,6 +116,7 @@ export default {
         console.error("Error fetching todos:", error);
       }
     },
+
     async addTodo() {
       if (this.newTodo.trim() !== "") {
         try {
