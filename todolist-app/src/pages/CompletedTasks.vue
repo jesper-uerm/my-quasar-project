@@ -32,52 +32,59 @@
   font-weight: bold;
 }
 </style>
-<script setup>
-import { ref, onMounted, computed } from "vue";
+<script>
 import axios from "axios";
 
-const allTasks = ref([]);
 const API_URL = "http://localhost:3000/tbl_tasks";
-const isLoading = ref(true);
 
-const columns = ref([
-  {
-    name: "taskName",
-    label: "Task",
-    field: "taskName",
-    align: "center",
-    sortable: true,
+export default {
+  data() {
+    return {
+      allTasks: [],
+      isLoading: true,
+      columns: [
+        {
+          name: "taskName",
+          label: "Task",
+          field: "taskName",
+          align: "center",
+          sortable: true,
+        },
+        {
+          name: "date_completed",
+          label: "Date Completed",
+          field: "date_completed",
+          align: "center",
+          sortable: true,
+          format: (val) => new Date(val).toLocaleDateString(),
+        },
+      ],
+    };
   },
-  {
-    name: "date_completed",
-    label: "Date Completed",
-    field: "date_completed",
-    align: "center",
-    sortable: true,
-    format: (val) => new Date(val).toLocaleDateString(),
+
+  computed: {
+    rows() {
+      return this.allTasks.filter((task) => task.is_done === true);
+    },
   },
-]);
 
-const rows = computed(() => {
-  return allTasks.value.filter((task) => task.is_done === true);
-});
+  methods: {
+    methods: {
+      async fetchTodos() {
+        try {
+          const response = await axios.get(API_URL);
+          this.allTasks = response.data;
+        } catch (error) {
+          console.error("Error fetching todos:", error);
+        } finally {
+          this.isLoading = false;
+        }
+      },
+    },
+  },
 
-onMounted(async () => {
-  try {
-    await fetchTodos();
-  } catch (error) {
-    console.error("Failed to load initial data:", error);
-  } finally {
-    isLoading.value = false;
-  }
-});
-
-async function fetchTodos() {
-  try {
-    const response = await axios.get(API_URL);
-    allTasks.value = response.data;
-  } catch (error) {
-    console.error("Error fetching todos:", error);
-  }
-}
+  mounted() {
+    this.fetchTodos();
+  },
+};
 </script>

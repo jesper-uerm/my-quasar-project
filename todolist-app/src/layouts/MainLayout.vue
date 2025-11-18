@@ -44,22 +44,34 @@
   </q-layout>
 </template>
 
-<script setup>
-import { onMounted } from "vue";
+<script>
+import { mapState, mapActions } from "pinia";
 import { useTaskStore } from "src/composable/useTaskStore.js";
 
-//
-const {
-  taskCount,
-  fetchTaskCount,
-  completedTaskCount,
-  fetchCompletedTaskCounts,
-} = useTaskStore();
+export default {
+  data() {
+    return {
+      leftDrawerOpen: false,
+    };
+  },
 
-onMounted(() => {
-  fetchTaskCount();
-  fetchCompletedTaskCounts();
-});
+  computed: {
+    ...mapState(useTaskStore, ["taskCount", "completedTaskCount"]),
+  },
+
+  methods: {
+    ...mapActions(useTaskStore, ["fetchTaskCount", "fetchCompletedTaskCounts"]),
+
+    // toggleLeftDrawer() {
+    //   this.leftDrawerOpen = !this.leftDrawerOpen;
+    // },
+  },
+
+  mounted() {
+    this.fetchTaskCount();
+    this.fetchCompletedTaskCounts();
+  },
+};
 
 // const leftDrawerOpen = ref(false);
 

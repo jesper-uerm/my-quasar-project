@@ -74,6 +74,7 @@
 <script>
 import axios from "axios";
 // import { date } from "quasar";
+import { mapState, mapActions } from "pinia";
 import TodoItem from "components/TodoItem.vue";
 import { useTaskStore } from "src/composable/useTaskStore.js";
 
@@ -93,25 +94,17 @@ export default {
       editingTodoDueDate: "",
     };
   },
-  setup() {
-    const {
-      fetchTaskCount,
-      incrementCount,
-      decrementCount,
-      incrementCompletedCount,
-      decrementCompletedCount,
-    } = useTaskStore();
-
-    return {
-      fetchTaskCount,
-      incrementCount,
-      decrementCount,
-      incrementCompletedCount,
-      decrementCompletedCount,
-    };
+  computed: {
+    ...mapState(useTaskStore, ["taskCount", "completedTaskCount"]),
   },
-
   methods: {
+    ...mapActions(useTaskStore, [
+      "fetchTaskCount",
+      "incrementCount",
+      "decrementCount",
+      "incrementCompletedCount",
+      "decrementCompletedCount",
+    ]),
     async fetchTodos() {
       try {
         const response = await axios.get(API_URL);
@@ -229,6 +222,7 @@ export default {
             if (index !== -1) {
               this.todos.splice(index, 1);
               this.decrementCount();
+              this.decrementCompletedCount();
             }
           } catch (error) {
             console.error("Error deleting todo:", error);
