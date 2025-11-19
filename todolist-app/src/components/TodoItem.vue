@@ -114,31 +114,36 @@
   }
 }
 </style>
-<script setup>
-import { computed } from "vue";
+<script>
 import { date } from "quasar";
 
-const props = defineProps({
-  todo: Object,
-  isEditing: Boolean,
-  editedtaskName: String,
-  editedDueDate: String,
-});
-defineEmits([
-  "toggle",
-  "delete",
-  "edit",
-  "save",
-  "cancel",
-  "update:editedtaskName",
-  "update:editedDueDate",
-]);
-const formattedDate = computed(() => {
-  if (!props.todo.dueDate) {
-    return "";
-  }
-  return date.formatDate(props.todo.dueDate, "MMM D, YYYY");
-});
+export default {
+  props: {
+    todo: Object,
+    isEditing: Boolean,
+    editedtaskName: String,
+    editedDueDate: String,
+  },
+
+  emits: [
+    "toggle",
+    "delete",
+    "edit",
+    "save",
+    "cancel",
+    "update:editedtaskName",
+    "update:editedDueDate",
+  ],
+
+  computed: {
+    formattedDate() {
+      if (!this.todo.dueDate) {
+        return "";
+      }
+      return date.formatDate(this.todo.dueDate, "MMM D, YYYY");
+    },
+  },
+};
 </script>
 
 <style>

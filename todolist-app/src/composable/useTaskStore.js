@@ -1,55 +1,44 @@
-import { ref } from 'vue';
 import axios from 'axios';
+import { defineStore } from 'pinia';
 
-const taskCount = ref(0);
-const completedTaskCount = ref(0);
 const API_URL = 'http://localhost:3000/tbl_tasks';
 
+export const useTaskStore = defineStore('taskStore', {
+  state: () => ({
+    taskCount: 0,
+    completedTaskCount: 0
+  }),
 
-async function fetchTaskCount() {
+  actions:{
+  async fetchTaskCount() {
   try {
     const response = await axios.get(`${API_URL}/count`);
-    taskCount.value = response.data.count;
+    this.taskCount = response.data.count;
   } catch (error) {
     console.error('Error fetching task count:', error);
   }
-}
-
-function incrementCount() {
-  taskCount.value++;
-}
-
-function decrementCount() {
-  taskCount.value--;
-
-}
-
-async function fetchCompletedTaskCounts() {
+},
+incrementCount() {
+  this.taskCount++;
+},
+decrementCount() {
+  this.taskCount--;
+},
+async fetchCompletedTaskCounts() {
   try {
     const response = await axios.get(`${API_URL}/counts`);
-    completedTaskCount.value = response.data.completed;
+    this.completedTaskCount = response.data.completed;
   } catch (error) {
     console.error('Error fetching task counts:', error);
   }
+},
+incrementCompletedCount() {
+  this.completedTaskCount++;
+},
+decrementCompletedCount() {
+  this.completedTaskCount--;
+},
 }
 
-function incrementCompletedCount() {
-  completedTaskCount.value++;
-}
+})
 
-function decrementCompletedCount() {
-  completedTaskCount.value--;
-}
-
-export function useTaskStore() {
-  return {
-    taskCount,
-    fetchTaskCount,
-    incrementCount,
-    decrementCount,
-    incrementCompletedCount,
-    decrementCompletedCount,
-    completedTaskCount,
-    fetchCompletedTaskCounts,
-  };
-}
