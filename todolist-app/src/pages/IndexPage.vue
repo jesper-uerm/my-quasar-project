@@ -12,6 +12,7 @@
         placeholder="YYYY-MM-DD"
         filled
         dense
+        @blur="validateDateInput"
         class="q-mt-sm"
       >
         <template v-slot:append>
@@ -74,6 +75,7 @@
 <script>
 import axios from "axios";
 import { mapState, mapActions } from "pinia";
+import { date } from "quasar";
 import TodoItem from "components/TodoItem.vue";
 import { useTaskStore } from "src/composable/useTaskStore.js";
 
@@ -107,6 +109,22 @@ export default {
       "incrementCompletedCount",
       "decrementCompletedCount",
     ]),
+
+    validateDateInput() {
+      if (!this.newTodoDueDate) return;
+
+      const isValid = date.isValid(this.newTodoDueDate);
+
+      if (!isValid) {
+        this.newTodoDueDate = null;
+
+        this.$q.notify({
+          type: "warning",
+          message: "Invalid date entered. Reset to null.",
+          position: "top",
+        });
+      }
+    },
 
     async fetchTodos() {
       try {
@@ -165,7 +183,7 @@ export default {
         todo.is_done = !todo.is_done;
 
         if (todo.is_done) {
-          todo.date_completed = new Date().toISOString;
+          todo.date_completed = new Date().toISOString();
           this.decrementCount();
           this.incrementCompletedCount();
         } else {
@@ -224,9 +242,14 @@ export default {
             const index = this.todos.findIndex((t) => t.id === id);
 
             if (index !== -1) {
+              const isCompleted = this.todos[index].is_done;
+
+              if (isCompleted) {
+                this.decrementCompletedCount();
+              } else {
+                this.decrementCount();
+              }
               this.todos.splice(index, 1);
-              this.decrementCount();
-              this.decrementCompletedCount();
             }
           } catch (error) {
             console.error("Error deleting todo:", error);
