@@ -73,13 +73,13 @@
 </style>
 
 <script>
-import axios from "axios";
-import { mapState, mapActions } from "pinia";
-import { date } from "quasar";
-import TodoItem from "components/TodoItem.vue";
-import { useTaskStore } from "src/composable/useTaskStore.js";
+import axios from 'axios'
+import { mapState, mapActions } from 'pinia'
+import { date } from 'quasar'
+import TodoItem from 'components/TodoItem.vue'
+import { useTaskStore } from 'src/composable/useTaskStore.js'
 
-const API_URL = "http://localhost:3000/tbl_tasks";
+const API_URL = 'http://localhost:3000/tbl_tasks'
 
 export default {
   components: {
@@ -88,180 +88,180 @@ export default {
 
   data() {
     return {
-      newTodo: "",
-      newTodoDueDate: "",
+      newTodo: '',
+      newTodoDueDate: '',
       todos: [],
       editingTodoId: null,
-      editingTodotaskName: "",
-      editingTodoDueDate: "",
-    };
+      editingTodotaskName: '',
+      editingTodoDueDate: '',
+    }
   },
 
   computed: {
-    ...mapState(useTaskStore, ["taskCount", "completedTaskCount"]),
+    ...mapState(useTaskStore, ['taskCount', 'completedTaskCount']),
   },
 
   methods: {
     ...mapActions(useTaskStore, [
-      "fetchTaskCount",
-      "incrementCount",
-      "decrementCount",
-      "incrementCompletedCount",
-      "decrementCompletedCount",
+      'fetchTaskCount',
+      'incrementCount',
+      'decrementCount',
+      'incrementCompletedCount',
+      'decrementCompletedCount',
     ]),
 
     validateDateInput() {
-      if (!this.newTodoDueDate) return;
+      if (!this.newTodoDueDate) return
 
-      const isValid = date.isValid(this.newTodoDueDate);
+      const isValid = date.isValid(this.newTodoDueDate)
 
       if (!isValid) {
-        this.newTodoDueDate = null;
+        this.newTodoDueDate = null
 
         this.$q.notify({
-          type: "warning",
-          message: "Invalid date entered. Reset to null.",
-          position: "top",
-        });
+          type: 'warning',
+          message: 'Invalid date entered. Reset to null.',
+          position: 'top',
+        })
       }
     },
 
     async fetchTodos() {
       try {
-        const response = await axios.get(API_URL);
-        this.todos = response.data.filter((task) => task && task.id);
+        const response = await axios.get(API_URL)
+        this.todos = response.data.filter((task) => task && task.id)
       } catch (error) {
-        console.error("Error fetching todos:", error);
+        console.error('Error fetching todos:', error)
       }
     },
 
     async addTodo() {
-      if (this.newTodo.trim() !== "") {
+      if (this.newTodo.trim() !== '') {
         try {
           const response = await axios.post(API_URL, {
             taskName: this.newTodo,
             dueDate: this.newTodoDueDate,
-          });
+          })
           if (response.data && response.data.id) {
             this.$q.notify({
-              message: "New task added successfully!",
-              color: "positive",
-              icon: "check_circle",
-              position: "top",
-            });
-            this.todos.unshift(response.data);
-            this.incrementCount();
-            this.newTodo = "";
-            this.newTodoDueDate = null;
+              message: 'New task added successfully!',
+              color: 'positive',
+              icon: 'check_circle',
+              position: 'top',
+            })
+            this.todos.unshift(response.data)
+            this.incrementCount()
+            this.newTodo = ''
+            this.newTodoDueDate = null
           } else {
-            throw new Error("Invalid response from server");
+            throw new Error('Invalid response from server')
           }
         } catch (error) {
-          console.error("Error adding todo:", error);
+          console.error('Error adding todo:', error)
         }
       } else {
         this.$q.notify({
-          message: "Please fill task field.",
-          color: "negative",
-          icon: "warning",
-          position: "top",
-        });
+          message: 'Please fill task field.',
+          color: 'negative',
+          icon: 'warning',
+          position: 'top',
+        })
       }
     },
 
     async updateTodo(todo) {
       try {
-        await axios.put(`${API_URL}/${todo.id}`, todo);
+        await axios.put(`${API_URL}/${todo.id}`, todo)
       } catch (error) {
-        console.error("Error updating todo:", error);
+        console.error('Error updating todo:', error)
       }
     },
 
     toggleTodoStatus(id) {
-      const todo = this.todos.find((t) => t.id === id);
+      const todo = this.todos.find((t) => t.id === id)
       if (todo) {
-        todo.is_done = !todo.is_done;
+        todo.isDone = !todo.isDone
 
-        if (todo.is_done) {
-          todo.date_completed = new Date().toISOString();
-          this.decrementCount();
-          this.incrementCompletedCount();
+        if (todo.isDone) {
+          todo.dateCompleted = new Date().toISOString()
+          this.decrementCount()
+          this.incrementCompletedCount()
         } else {
-          todo.date_completed = null;
-          this.incrementCount();
-          this.decrementCompletedCount();
+          todo.dateCompleted = null
+          this.incrementCount()
+          this.decrementCompletedCount()
         }
-        this.updateTodo(todo);
+        this.updateTodo(todo)
       }
     },
 
     startEdit(todo) {
-      this.editingTodoId = todo.id;
-      this.editingTodotaskName = todo.taskName;
-      this.editingTodoDueDate = todo.dueDate;
+      this.editingTodoId = todo.id
+      this.editingTodotaskName = todo.taskName
+      this.editingTodoDueDate = todo.dueDate
     },
 
     saveEdit() {
-      if (this.editingTodoId === null) return;
-      const todo = this.todos.find((t) => t.id === this.editingTodoId);
+      if (this.editingTodoId === null) return
+      const todo = this.todos.find((t) => t.id === this.editingTodoId)
 
       if (todo && this.editingTodotaskName.trim()) {
-        todo.taskName = this.editingTodotaskName.trim();
-        todo.dueDate = this.editingTodoDueDate;
-        this.updateTodo(todo);
+        todo.taskName = this.editingTodotaskName.trim()
+        todo.dueDate = this.editingTodoDueDate
+        this.updateTodo(todo)
       }
-      this.cancelEdit();
+      this.cancelEdit()
     },
 
     cancelEdit() {
-      this.editingTodoId = null;
-      this.editingTodotaskName = "";
-      this.editingTodoDueDate = null;
+      this.editingTodoId = null
+      this.editingTodotaskName = ''
+      this.editingTodoDueDate = null
     },
 
     async deleteTodo(id) {
       this.$q
         .dialog({
-          title: "Confirm Delete",
-          message: "Are you sure you want to permanently delete this task?",
+          title: 'Confirm Delete',
+          message: 'Are you sure you want to permanently delete this task?',
           ok: {
-            label: "YES",
-            color: "negative",
+            label: 'YES',
+            color: 'negative',
             flat: false,
           },
           cancel: {
-            label: "NO",
-            color: "white",
-            textColor: "black",
+            label: 'NO',
+            color: 'white',
+            textColor: 'black',
             flat: false,
           },
         })
         .onOk(async () => {
           try {
-            await axios.delete(`${API_URL}/${id}`);
-            const index = this.todos.findIndex((t) => t.id === id);
+            await axios.delete(`${API_URL}/${id}`)
+            const index = this.todos.findIndex((t) => t.id === id)
 
             if (index !== -1) {
-              const isCompleted = this.todos[index].is_done;
+              const isCompleted = this.todos[index].isDone
 
               if (isCompleted) {
-                this.decrementCompletedCount();
+                this.decrementCompletedCount()
               } else {
-                this.decrementCount();
+                this.decrementCount()
               }
-              this.todos.splice(index, 1);
+              this.todos.splice(index, 1)
             }
           } catch (error) {
-            console.error("Error deleting todo:", error);
+            console.error('Error deleting todo:', error)
           }
-        });
+        })
     },
   },
 
   mounted() {
-    this.fetchTodos();
-    this.fetchTaskCount();
+    this.fetchTodos()
+    this.fetchTaskCount()
   },
-};
+}
 </script>
 <style scoped></style>

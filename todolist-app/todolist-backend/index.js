@@ -1,147 +1,180 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const cors = require('cors');
+const express = require('express')
+const sql = require('mssql')
+const cors = require('cors')
 
-const app = express();
-const port = 3000;
+const app = express()
+const port = 3000
 
-app.use(cors());
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
 
-const dbPool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
+const config = {
+  user: '9580',
+  password: 'uerm@9580',
+  server: '20.14.20.196',
   database: 'todolist_quasardb',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+
+  options: {
+    encrypt: false,
+    trustServerCertificate: true,
+  },
+}
+
+let pool
+
+async function startApp() {
+  try {
+    pool = await sql.connect(config)
+    console.log('Connected to SQL Server')
+
+    app.listen(port, () => {
+      console.log(`API server listening at http://localhost:${port}`)
+    })
+  } catch (err) {
+    console.error('Failed to connect to Database:', err)
+  }
+}
+
+startApp()
 
 app.get('/', (req, res) => {
   res.json({
-    message: "Welcome to the Todolist API!",
-    status: "Running"
-  });
-});
+    message: 'Welcome to the Todolist API!',
+    status: 'Running',
+  })
+})
 
 app.get('/tbl_tasks', async (req, res) => {
   try {
-    const [rows] = await dbPool.query("SELECT * FROM tbl_tasks ORDER BY id DESC");
-    const tasks = rows.map(task => ({
+    const result = await pool.request().query('SELECT * FROM tbl_tasks ORDER BY id DESC')
+    const tasks = result.recordset.map((task) => ({
       ...task,
-      is_done: !!task.is_done
-    }));
-    res.json(tasks);
+      isDone: !!task.isDone,
+    }))
+
+    res.json(tasks)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.get('/tbl_tasks/count', async (req, res) => {
   try {
-  const [rows] = await dbPool.query("SELECT COUNT(*) as totalCount FROM tbl_tasks");
-  res.json({ count: rows[0].totalCount });
-
+    const result = await pool.request().query('SELECT COUNT(*) as totalCount FROM tbl_tasks')
+    res.json({ count: result.recordset[0].totalCount })
   } catch (error) {
-  console.error(error);
-  res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.get('/tbl_tasks/counts', async (req, res) => {
   try {
     const query = `
       SELECT
-        (SELECT COUNT(*) FROM tbl_tasks WHERE is_done = 0 OR is_done IS NULL) AS incompleteCount,
-        (SELECT COUNT(*) FROM tbl_tasks WHERE is_done = 1) AS completedCount
-  `;
-  const [rows] = await dbPool.query(query);
+        (SELECT COUNT(*) FROM tbl_tasks WHERE isDone = 0 OR isDone IS NULL) AS incompleteCount,
+        (SELECT COUNT(*) FROM tbl_tasks WHERE isDone = 1) AS completedCount
+  `
+    const result = await pool.request().query(query)
+    const counts = result.recordset[0]
 
-  res.json({
-      incomplete: rows[0].incompleteCount,
-      completed: rows[0].completedCount
-    });
-
+    res.json({
+      incomplete: counts.incompleteCount,
+      completed: counts.completedCount,
+    })
   } catch (error) {
-  console.error(error);
-  res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.post('/tbl_tasks', async (req, res) => {
-  const { taskName, dueDate} = req.body;
+  const { taskName, dueDate } = req.body
+
   if (!taskName) {
-    return res.status(400).json({ error: 'taskName is required' });
+    return res.status(400).json({ error: 'taskName is required' })
   }
 
-  const newDueDate = dueDate ? dueDate : null;
+  const newDueDate = dueDate ? dueDate : null
 
   try {
-    const [result] = await dbPool.query(
-      "INSERT INTO tbl_tasks (taskName, is_done, dueDate) VALUES (?, ?, ?)",
-      [taskName, false, newDueDate]
-    );
+    const result = await pool
+      .request()
+      .input('taskName', sql.VarChar, taskName)
+      .input('dueDate', sql.Date, newDueDate).query(`
+        INSERT INTO tbl_tasks (taskName, isDone, dueDate)
+        VALUES (@taskName, 0, @dueDate);
+        SELECT SCOPE_IDENTITY() AS id
+      `)
+
+    const newId = result.recordset[0].id
 
     const newTask = {
-      id: result.insertId,
+      id: newId,
       taskName: taskName,
-      is_done: false,
-      dueDate: newDueDate
-    };
-    res.status(201).json(newTask);
+      isDone: false,
+      dueDate: newDueDate,
+    }
+    res.status(201).json(newTask)
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.put('/tbl_tasks/:id', async (req, res) => {
-  const { id } = req.params;
-  const { taskName, is_done, dueDate } = req.body;
-  const isDoneBoolean = !!is_done;
+  const { id } = req.params
+  const { taskName, isDone, dueDate } = req.body
+  const isDoneBoolean = !!isDone
 
-  let dateCompletedValue;
+  let dateCompletedValue
   if (isDoneBoolean === true) {
-    dateCompletedValue = new Date();
+    dateCompletedValue = new Date()
   } else {
-    dateCompletedValue = null;
+    dateCompletedValue = null
   }
 
-  const newDueDate = dueDate ? dueDate : null;
+  const newDueDate = dueDate ? dueDate : null
 
   try {
-    await dbPool.query(
-      "UPDATE tbl_tasks SET taskName = ?, is_done = ?, dueDate = ?, date_completed = ? WHERE id = ?",
-      [taskName, isDoneBoolean, newDueDate,  dateCompletedValue, id]
-    );
+    await pool
+      .request()
+      .input('taskName', sql.VarChar, taskName)
+      .input('isDone', sql.Bit, isDoneBoolean)
+      .input('dueDate', sql.Date, newDueDate)
+      .input('dateCompletedValue', sql.Date, dateCompletedValue)
+      .input('id', sql.Int, id)
+      .query(
+        'UPDATE tbl_tasks SET taskName = @taskName, isDone = @isDone, dueDate = @dueDate, dateCompleted = @dateCompletedValue WHERE id = @id',
+      )
+
     res.json({
       id: parseInt(id, 10),
       taskName,
-      is_done: isDoneBoolean,
-      date_completed: dateCompletedValue,
-      dueDate: newDueDate
-    });
-
+      isDone: isDoneBoolean,
+      dateCompleted: dateCompletedValue,
+      dueDate: newDueDate,
+    })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.delete('/tbl_tasks/:id', async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params
 
   try {
-    await dbPool.query("DELETE FROM tbl_tasks WHERE id = ?", [id]);
-    res.json({ success: true });
+    await pool.request().input('id', sql.Int, id).query('DELETE FROM tbl_tasks WHERE id = @id')
+
+    res.json({ success: true })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
+    console.error(error)
+    res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
 app.listen(port, () => {
-  console.log(`API server listening at http://localhost:${port}`);
-});
+  console.log(`API server listening at http://localhost:${port}`)
+})

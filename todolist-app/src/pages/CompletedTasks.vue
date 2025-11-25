@@ -33,9 +33,9 @@
 }
 </style>
 <script>
-import axios from "axios";
+import axios from 'axios'
 
-const API_URL = "http://localhost:3000/tbl_tasks";
+const API_URL = 'http://localhost:3000/tbl_tasks'
 
 export default {
   data() {
@@ -44,47 +44,45 @@ export default {
       isLoading: true,
       columns: [
         {
-          name: "taskName",
-          label: "Task",
-          field: "taskName",
-          align: "center",
+          name: 'taskName',
+          label: 'Task',
+          field: 'taskName',
+          align: 'center',
           sortable: true,
         },
         {
-          name: "date_completed",
-          label: "Date Completed",
-          field: "date_completed",
-          align: "center",
+          name: 'dateCompleted',
+          label: 'Date Completed',
+          field: 'dateCompleted',
+          align: 'center',
           sortable: true,
           format: (val) => new Date(val).toLocaleDateString(),
         },
       ],
-    };
+    }
   },
 
   computed: {
     rows() {
-      return this.allTasks.filter((task) => task.is_done === true);
+      return this.allTasks.filter((task) => task.isDone === true)
     },
   },
 
   methods: {
-    methods: {
-      async fetchTodos() {
-        try {
-          const response = await axios.get(API_URL);
-          this.allTasks = response.data;
-        } catch (error) {
-          console.error("Error fetching todos:", error);
-        } finally {
-          this.isLoading = false;
-        }
-      },
+    async fetchTodos() {
+      try {
+        const response = await axios.get(API_URL)
+        this.allTasks = response.data
+      } catch (error) {
+        console.error('Error fetching todos:', error)
+      } finally {
+        this.isLoading = false
+      }
     },
   },
 
   mounted() {
-    this.fetchTodos();
+    this.fetchTodos()
   },
-};
+}
 </script>

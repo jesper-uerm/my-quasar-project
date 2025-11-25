@@ -1,5 +1,5 @@
 <template>
-  <q-item :class="{ done: todo.is_done }">
+  <q-item :class="{ done: todo.isDone }">
     <template v-if="isEditing">
       <q-item-section>
         <q-input
@@ -44,22 +44,8 @@
 
       <q-item-section side>
         <div class="row q-gutter-sm">
-          <q-btn
-            square
-            dense
-            padding="sm"
-            color="positive"
-            icon="check"
-            @click="$emit('save')"
-          />
-          <q-btn
-            square
-            dense
-            padding="sm"
-            color="warning"
-            icon="close"
-            @click="$emit('cancel')"
-          />
+          <q-btn square dense padding="sm" color="positive" icon="check" @click="$emit('save')" />
+          <q-btn square dense padding="sm" color="warning" icon="close" @click="$emit('cancel')" />
         </div>
       </q-item-section>
     </template>
@@ -67,7 +53,7 @@
     <template v-else>
       <q-item-section avatar>
         <q-checkbox
-          :model-value="todo.is_done"
+          :model-value="todo.isDone"
           @update:model-value="$emit('toggle')"
           color="primary"
         />
@@ -85,14 +71,7 @@
 
       <q-item-section side>
         <div class="row q-gutter-sm">
-          <q-btn
-            square
-            dense
-            padding="sm"
-            color="primary"
-            icon="edit"
-            @click="$emit('edit')"
-          />
+          <q-btn square dense padding="sm" color="primary" icon="edit" @click="$emit('edit')" />
           <q-btn
             square
             dense
@@ -115,7 +94,7 @@
 }
 </style>
 <script>
-import { date } from "quasar";
+import { date } from 'quasar'
 
 export default {
   props: {
@@ -126,24 +105,24 @@ export default {
   },
 
   emits: [
-    "toggle",
-    "delete",
-    "edit",
-    "save",
-    "cancel",
-    "update:editedtaskName",
-    "update:editedDueDate",
+    'toggle',
+    'delete',
+    'edit',
+    'save',
+    'cancel',
+    'update:editedtaskName',
+    'update:editedDueDate',
   ],
 
   computed: {
     formattedDate() {
       if (!this.todo.dueDate) {
-        return "";
+        return ''
       }
-      return date.formatDate(this.todo.dueDate, "MMM D, YYYY");
+      return date.formatDate(this.todo.dueDate, 'MMM D, YYYY')
     },
   },
-};
+}
 </script>
 
 <style>
